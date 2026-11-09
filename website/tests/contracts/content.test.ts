@@ -331,7 +331,7 @@ describe("homepage and reference content", () => {
     for (const label of [
       "Get started",
       "View on GitHub",
-      "77 catalog-backed tools",
+      "78 catalog-backed tools",
       "Choose your trust boundary",
       "Trello secrets stay out of prompts",
       "Archive before delete",

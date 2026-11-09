@@ -34,7 +34,7 @@ describe("runtime-backed tool catalog", () => {
     const runtimeNames = allTools.map(({ name }) => name).sort();
     const catalogNames = catalogTools.map(({ name }) => name).sort();
 
-    expect(TOOL_COUNT).toBe(77);
+    expect(TOOL_COUNT).toBe(78);
     expect(CATEGORY_COUNT).toBe(CATALOG_CATEGORY_COUNT);
     expect(catalogTools).toHaveLength(TOOL_COUNT);
     expect(new Set(catalogNames).size).toBe(TOOL_COUNT);

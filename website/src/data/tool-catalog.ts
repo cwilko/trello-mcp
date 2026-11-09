@@ -115,6 +115,7 @@ const categoryDefinitions = [
       ["card_create", "write", "created card object"],
       ["card_update", "write", "updated card object"],
       ["card_due_date_set", "write", "updated card object"],
+      ["card_recurrence_set", "write", "card recurrence rule object"],
       ["card_position_set", "write", "updated card object"],
       ["card_cover_set", "write", "updated card object"],
       ["card_label_create_and_add", "write", "created label object"],

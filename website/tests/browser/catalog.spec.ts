@@ -14,7 +14,7 @@ test("tool catalog filters by search, category, and behavior", async ({
 
   await expect(catalog.locator("[data-catalog-controls]")).toBeVisible();
   await search.fill("filePath");
-  await expect(status).toHaveText("1 of 77 tools shown");
+  await expect(status).toHaveText("1 of 78 tools shown");
   await expect(catalog.locator("[data-tool-card]:visible")).toHaveCount(1);
   await expect(
     catalog.locator('[data-tool-name="card_attachment_upload"]'),
@@ -22,25 +22,25 @@ test("tool catalog filters by search, category, and behavior", async ({
 
   await reset.click();
   await category.selectOption("checklists");
-  await expect(status).toHaveText("10 of 77 tools shown");
+  await expect(status).toHaveText("10 of 78 tools shown");
   await expect(catalog.locator("[data-tool-card]:visible")).toHaveCount(10);
 
   await reset.click();
   await behavior.selectOption("write");
-  await expect(status).toHaveText("37 of 77 tools shown");
+  await expect(status).toHaveText("38 of 78 tools shown");
   await expect(catalog.locator('[data-tool-name="card_create"]')).toBeVisible();
   await expect(catalog.locator('[data-tool-name="card_get"]')).toBeHidden();
 
   await reset.click();
   await behavior.selectOption("delete");
-  await expect(status).toHaveText("6 of 77 tools shown");
+  await expect(status).toHaveText("6 of 78 tools shown");
   await expect(
     catalog.getByText("Permanent delete", { exact: true }),
   ).toHaveCount(6);
 
   await reset.click();
   await search.fill("no-such-trello-tool-or-input");
-  await expect(status).toHaveText("0 of 77 tools shown");
+  await expect(status).toHaveText("0 of 78 tools shown");
   await expect(catalog.locator("[data-catalog-empty]")).toBeVisible();
 
   await reset.click();
@@ -75,7 +75,7 @@ test("tool inputs expand from keyboard and remain complete without JavaScript", 
       waitUntil: "domcontentloaded",
     });
     expect(response?.status()).toBe(200);
-    await expect(noScriptPage.locator("[data-tool-card]")).toHaveCount(77);
+    await expect(noScriptPage.locator("[data-tool-card]")).toHaveCount(78);
     await expect(noScriptPage.locator("[data-tool-group]")).toHaveCount(13);
     await expect(noScriptPage.locator("[data-catalog-controls]")).toBeHidden();
     await expect(

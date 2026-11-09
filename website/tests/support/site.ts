@@ -168,7 +168,7 @@ export const PUBLIC_DOCUMENT_METADATA = {
   "/reference/tools/": {
     title: "Tool catalog",
     description:
-      "Search 77 Trello MCP tools by category, behavior, name, purpose, and input.",
+      "Search 78 Trello MCP tools by category, behavior, name, purpose, and input.",
   },
   "/reference/api-coverage/": {
     title: "API coverage",
