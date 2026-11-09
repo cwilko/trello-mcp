@@ -271,6 +271,20 @@ export const TrelloCardSchema = z
   })
   .passthrough();
 
+export const TrelloCardRecurrenceRuleSchema = z
+  .object({
+    rule: z.string(),
+    triggers: z.array(
+      z
+        .object({
+          trigger: z.string(),
+          changes: z.array(z.string()),
+        })
+        .passthrough(),
+    ),
+  })
+  .passthrough();
+
 export const TrelloCustomFieldTypeSchema = z.enum([
   "checkbox",
   "date",

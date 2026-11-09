@@ -76,8 +76,8 @@ describe("Docker MCP Registry tools.json generator", () => {
     expect(DOCKER_REGISTRY_EXCLUDED_TOOL_NAMES).toEqual([
       "card_attachment_upload",
     ]);
-    expect(allTools).toHaveLength(77);
-    expect(selected).toHaveLength(76);
+    expect(allTools).toHaveLength(78);
+    expect(selected).toHaveLength(77);
     expect(selectedNames).toEqual(expectedNames);
     expect(selectedNames).not.toContain("card_attachment_upload");
   });
@@ -362,7 +362,7 @@ describe("Docker MCP Registry tools.json generator", () => {
       );
       const generated = generateDockerRegistryTools(allTools);
 
-      expect(listed.tools).toHaveLength(77);
+      expect(listed.tools).toHaveLength(78);
       expect(listedSelected.map(({ name }) => name).sort()).toEqual(
         generated.map(({ name }) => name),
       );

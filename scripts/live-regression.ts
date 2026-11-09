@@ -1045,6 +1045,15 @@ async function runCardRegression(context: RegressionContext): Promise<void> {
       "card_due_date_set",
     );
   }
+  if (shouldRunTool(context, "card_recurrence_set")) {
+    await objectResult(
+      invokeTool(context, "card_recurrence_set", {
+        cardId: card.id,
+        rule: "DTSTART;TZID=Europe/London:20300101T000000\nRRULE:FREQ=WEEKLY;INTERVAL=1;BYDAY=TU",
+      }),
+      "card_recurrence_set",
+    );
+  }
   if (shouldRunTool(context, "card_position_set")) {
     await objectResult(
       invokeTool(context, "card_position_set", {

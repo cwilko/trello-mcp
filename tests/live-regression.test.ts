@@ -530,6 +530,7 @@ describe("live regression suite", () => {
     expect(cardCallNames).not.toContain("label_create");
     expect(cardCallNames).not.toContain("card_update");
     expect(cardCallNames).not.toContain("card_due_date_set");
+    expect(cardCallNames).not.toContain("card_recurrence_set");
     expect(cardCallNames).not.toContain("card_position_set");
     expect(cardCallNames).not.toContain("card_cover_set");
     expect(cardCallNames).not.toContain("card_archive");
@@ -1453,6 +1454,13 @@ function createFakeRegressionInvoker(
         card.due = optionalInputString(input, "due") ?? null;
         card.dueComplete = input.dueComplete === true;
         return card;
+      }
+      case "card_recurrence_set": {
+        requiredMapValue(state.cards, requiredInputString(input, "cardId"));
+        return {
+          rule: requiredInputString(input, "rule"),
+          triggers: [{ trigger: "dueComplete", changes: ["dueDateChange"] }],
+        };
       }
       case "card_position_set":
         return requiredMapValue(

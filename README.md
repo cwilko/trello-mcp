@@ -532,7 +532,7 @@ See [docs/api-coverage.md](docs/api-coverage.md) for the Trello REST API group c
 ## Tool Catalog
 
 <!-- tools:start -->
-**77 tools** are registered. Names, descriptions, and key inputs are generated from `allTools`.
+**78 tools** are registered. Names, descriptions, and key inputs are generated from `allTools`.
 
 | Name | When to use | Key inputs |
 | --- | --- | --- |
@@ -570,8 +570,9 @@ See [docs/api-coverage.md](docs/api-coverage.md) for the Trello REST API group c
 | `card_labels` | Use when listing the labels currently applied to a card, including label ids for add/remove workflows. | cardId |
 | `list_cards` | Use when you need cards in a specific Trello list; use limit, since, before, and fields to keep large lists small. | listId, filter, fields, limit, since, before |
 | `card_create` | Use when the user asks to create a new Trello card in a known list; accepts title, description, due date, members, and labels. | listId, name, desc, due, pos, memberIds, labelIds |
-| `card_update` | Use when changing card metadata such as title, description, due date, due completion, or archive state without moving it. | cardId, name, desc, due, dueComplete, closed |
-| `card_due_date_set` | Use when setting, clearing, or marking completion of a card due date without changing other card metadata. Provide at least one of due or dueComplete. | cardId, due, dueComplete |
+| `card_update` | Use when changing card metadata such as title, description, due date, due completion, or archive state without moving it. | cardId, name, desc, due, dueComplete, dueReminder, closed |
+| `card_due_date_set` | Use when setting, clearing, or marking completion of a card due date, or setting its reminder, without changing other card metadata. Provide at least one of due, dueComplete, or dueReminder. | cardId, due, dueComplete, dueReminder |
+| `card_recurrence_set` | Use when making a card's due date repeat, for example weekly on Wednesday at 8pm. Sets the card recurrence rule through Trello's undocumented POST /cards/{id}/recurrenceRule endpoint, which Trello may change; read the current rule with card_get and fields set to recurrenceRule. Set the card due date first, and use the same date and time in the rule's DTSTART. | cardId, rule, triggers |
 | `card_position_set` | Use when changing only a card's position within its current list; use card_move when changing lists or boards too. | cardId, pos |
 | `card_cover_set` | Use when setting a card cover to an existing attachment id, changing cover display size, or clearing the current attachment cover. | cardId, attachmentId, size, brightness |
 | `card_label_create_and_add` | Create a new board label and apply it to this card. Use card_label_add for an existing label; repeating this creation can create duplicates. | cardId, name, color |

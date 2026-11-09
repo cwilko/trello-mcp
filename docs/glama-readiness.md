@@ -398,7 +398,8 @@ reads a guarded local file. No runtime hint claims otherwise.
 | `list_cards` | Cards from one list; explicit limit/cursor/fields guidance. | R | Adequate; M/O |
 | `card_create` | Known list, title/description/due/position/members/labels; bottom default. | C; archive or delete new card | Adequate; M/O |
 | `card_update` | Metadata and archive state without movement; null clears due. | S; prior values needed | Adequate; M/O |
-| `card_due_date_set` | Focused due/completion; at least one required in prose and handler. | S; null clears due | Adequate; M/O |
+| `card_due_date_set` | Focused due/completion/reminder; at least one required in prose and handler. | S; null clears due | Adequate; M/O |
+| `card_recurrence_set` | Repeat rule for a card due date; names the undocumented endpoint and the card_get read path. | S; previous rule needed | Adequate; M/O |
 | `card_position_set` | Current-list position; names card_move alternative. | S; order depends on other cards | Adequate; M/O |
 | `card_cover_set` | Existing attachment or null; display options require attachment; leaves file intact. | S; previous cover needed | Adequate; M/O |
 | `card_label_create_and_add` | New board label plus assignment; now names existing-label alternative and duplicates. | C; remove association does not delete label | Fixed; M/O |

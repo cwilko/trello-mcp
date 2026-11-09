@@ -18,6 +18,7 @@ import {
   TrelloBoardSchema,
   TrelloCardLabelsSchema,
   TrelloCardListSchema,
+  TrelloCardRecurrenceRuleSchema,
   TrelloCardSchema,
   TrelloChecklistItemListSchema,
   TrelloChecklistItemSchema,
@@ -48,6 +49,15 @@ const CardRelationshipFieldsInput = z.object({
   fields: fieldsSchema("all", "related resource", true),
 });
 
+const CardDueReminderInput = z
+  .number()
+  .int()
+  .min(0)
+  .optional()
+  .describe(
+    "Minutes before the due date to send the reminder; 0 reminds at the due time. Trello does not publish this card field in its REST spec, and clearing it is not supported here.",
+  );
+
 const CardDueDateInput = CardIdInput.extend({
   due: z
     .string()
@@ -59,6 +69,44 @@ const CardDueDateInput = CardIdInput.extend({
     .boolean()
     .optional()
     .describe("Whether the due date should be marked complete."),
+  dueReminder: CardDueReminderInput,
+});
+
+const CardRecurrenceTriggerSchema = z.object({
+  trigger: z
+    .string()
+    .min(1)
+    .describe("Event that advances the due date, for example dueComplete."),
+  changes: z
+    .array(z.string().min(1))
+    .min(1)
+    .describe(
+      "Changes applied when the trigger fires, for example dueDateChange.",
+    ),
+});
+
+const DEFAULT_CARD_RECURRENCE_TRIGGERS = [
+  { trigger: "dueComplete", changes: ["dueDateChange"] },
+];
+
+const CardRecurrenceInput = CardIdInput.extend({
+  rule: z
+    .string()
+    .min(1)
+    .refine(
+      (value) => /^DTSTART[;:]/m.test(value) && /^RRULE:/m.test(value),
+      "rule must contain a DTSTART line and an RRULE line separated by a newline.",
+    )
+    .describe(
+      "iCalendar rule in the form Trello stores it: a DTSTART line with a TZID, a newline, then an RRULE line, for example DTSTART;TZID=Europe/London:20261125T200000 followed by RRULE:FREQ=WEEKLY;INTERVAL=1;BYDAY=WE. Use the card's own due date and time for DTSTART.",
+    ),
+  triggers: z
+    .array(CardRecurrenceTriggerSchema)
+    .min(1)
+    .optional()
+    .describe(
+      "What advances the due date. Defaults to marking the due date complete, which rolls the due date to the next occurrence.",
+    ),
 });
 
 const CardPositionInput = CardIdInput.extend({
@@ -138,6 +186,7 @@ const UpdateCardInput = CardIdInput.extend({
     .boolean()
     .optional()
     .describe("Whether the due date is complete."),
+  dueReminder: CardDueReminderInput,
   closed: z
     .boolean()
     .optional()
@@ -490,12 +539,16 @@ export const cardTools = [
   defineTool({
     name: "card_due_date_set",
     description:
-      "Use when setting, clearing, or marking completion of a card due date without changing other card metadata. Provide at least one of due or dueComplete.",
+      "Use when setting, clearing, or marking completion of a card due date, or setting its reminder, without changing other card metadata. Provide at least one of due, dueComplete, or dueReminder.",
     inputSchema: CardDueDateInput,
-    handler: async ({ cardId, due, dueComplete }, { trello }) => {
-      if (due === undefined && dueComplete === undefined) {
+    handler: async ({ cardId, due, dueComplete, dueReminder }, { trello }) => {
+      if (
+        due === undefined &&
+        dueComplete === undefined &&
+        dueReminder === undefined
+      ) {
         throw new ValidationError(
-          "Provide at least one of due or dueComplete.",
+          "Provide at least one of due, dueComplete, or dueReminder.",
         );
       }
 
@@ -504,11 +557,32 @@ export const cardTools = [
         query: {
           ...(due !== undefined ? { due } : {}),
           ...(dueComplete !== undefined ? { dueComplete } : {}),
+          ...(dueReminder !== undefined ? { dueReminder } : {}),
         },
         resourceType: "card",
         resourceId: cardId,
       });
     },
+  }),
+  defineTool({
+    name: "card_recurrence_set",
+    description:
+      "Use when making a card's due date repeat, for example weekly on Wednesday at 8pm. Sets the card recurrence rule through Trello's undocumented POST /cards/{id}/recurrenceRule endpoint, which Trello may change; read the current rule with card_get and fields set to recurrenceRule. Set the card due date first, and use the same date and time in the rule's DTSTART.",
+    inputSchema: CardRecurrenceInput,
+    handler: async ({ cardId, rule, triggers }, { trello }) =>
+      trello.request(
+        `${cardPath(cardId)}/recurrenceRule`,
+        TrelloCardRecurrenceRuleSchema,
+        {
+          method: "POST",
+          body: {
+            rule,
+            triggers: triggers ?? DEFAULT_CARD_RECURRENCE_TRIGGERS,
+          },
+          resourceType: "card recurrence rule",
+          resourceId: cardId,
+        },
+      ),
   }),
   defineTool({
     name: "card_position_set",

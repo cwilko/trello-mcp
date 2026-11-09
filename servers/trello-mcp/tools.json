@@ -971,7 +971,7 @@
   },
   {
     "name": "card_due_date_set",
-    "description": "Use when setting, clearing, or marking completion of a card due date without changing other card metadata. Provide at least one of due or dueComplete.",
+    "description": "Use when setting, clearing, or marking completion of a card due date, or setting its reminder, without changing other card metadata. Provide at least one of due, dueComplete, or dueReminder.",
     "arguments": [
       {
         "name": "cardId",
@@ -988,6 +988,12 @@
         "name": "dueComplete",
         "type": "boolean",
         "desc": "Whether the due date should be marked complete.",
+        "optional": true
+      },
+      {
+        "name": "dueReminder",
+        "type": "integer",
+        "desc": "Minutes before the due date to send the reminder; 0 reminds at the due time. Trello does not publish this card field in its REST spec, and clearing it is not supported here.",
         "optional": true
       }
     ]
@@ -1185,6 +1191,31 @@
     ]
   },
   {
+    "name": "card_recurrence_set",
+    "description": "Use when making a card's due date repeat, for example weekly on Wednesday at 8pm. Sets the card recurrence rule through Trello's undocumented POST /cards/{id}/recurrenceRule endpoint, which Trello may change; read the current rule with card_get and fields set to recurrenceRule. Set the card due date first, and use the same date and time in the rule's DTSTART.",
+    "arguments": [
+      {
+        "name": "cardId",
+        "type": "string",
+        "desc": "Trello card id, short link, or Trello card URL."
+      },
+      {
+        "name": "rule",
+        "type": "string",
+        "desc": "iCalendar rule in the form Trello stores it: a DTSTART line with a TZID, a newline, then an RRULE line, for example DTSTART;TZID=Europe/London:20261125T200000 followed by RRULE:FREQ=WEEKLY;INTERVAL=1;BYDAY=WE. Use the card's own due date and time for DTSTART."
+      },
+      {
+        "name": "triggers",
+        "type": "array",
+        "items": {
+          "type": "object"
+        },
+        "desc": "What advances the due date. Defaults to marking the due date complete, which rolls the due date to the next occurrence.",
+        "optional": true
+      }
+    ]
+  },
+  {
     "name": "card_update",
     "description": "Use when changing card metadata such as title, description, due date, due completion, or archive state without moving it.",
     "arguments": [
@@ -1215,6 +1246,12 @@
         "name": "dueComplete",
         "type": "boolean",
         "desc": "Whether the due date is complete.",
+        "optional": true
+      },
+      {
+        "name": "dueReminder",
+        "type": "integer",
+        "desc": "Minutes before the due date to send the reminder; 0 reminds at the due time. Trello does not publish this card field in its REST spec, and clearing it is not supported here.",
         "optional": true
       },
       {

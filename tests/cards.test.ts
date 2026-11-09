@@ -1036,8 +1036,153 @@ describe("card tools", () => {
         { cardId: "card1" },
         { trello: trello as never, logger: {} as never, requestId: "req1" },
       ),
-    ).rejects.toThrow("Provide at least one of due or dueComplete.");
+    ).rejects.toThrow(
+      "Provide at least one of due, dueComplete, or dueReminder.",
+    );
     expect(trello.request).not.toHaveBeenCalled();
+  });
+
+  it("sets only the due reminder, including a zero offset", async () => {
+    const tool = getCardTool("card_due_date_set");
+    const trello = {
+      request: vi.fn(async () => ({
+        id: "card1",
+        name: "Remind me",
+        dueReminder: 0,
+      })),
+    };
+
+    await tool.handler(
+      tool.inputSchema.parse({ cardId: "card1", dueReminder: 0 }),
+      { trello: trello as never, logger: {} as never, requestId: "req1" },
+    );
+    expect(trello.request).toHaveBeenCalledWith(
+      "/cards/card1",
+      expect.anything(),
+      expect.objectContaining({
+        method: "PUT",
+        query: { dueReminder: 0 },
+      }),
+    );
+  });
+
+  it("rejects negative and fractional due reminders", () => {
+    const tool = getCardTool("card_due_date_set");
+
+    expect(() =>
+      tool.inputSchema.parse({ cardId: "card1", dueReminder: -1 }),
+    ).toThrow();
+    expect(() =>
+      tool.inputSchema.parse({ cardId: "card1", dueReminder: 1.5 }),
+    ).toThrow();
+  });
+
+  it("passes the due reminder through card_update", async () => {
+    const tool = getCardTool("card_update");
+    const trello = {
+      request: vi.fn(async () => ({ id: "card1", name: "Remind me" })),
+    };
+
+    await tool.handler(
+      tool.inputSchema.parse({ cardId: "card1", dueReminder: 15 }),
+      { trello: trello as never, logger: {} as never, requestId: "req1" },
+    );
+    expect(trello.request).toHaveBeenCalledWith(
+      "/cards/card1",
+      expect.anything(),
+      expect.objectContaining({
+        method: "PUT",
+        query: { dueReminder: 15 },
+      }),
+    );
+  });
+
+  it("sets a card recurrence rule with the default due-complete trigger", async () => {
+    const tool = getCardTool("card_recurrence_set");
+    const rule =
+      "DTSTART;TZID=Europe/London:20261125T200000\nRRULE:FREQ=WEEKLY;INTERVAL=1;BYDAY=WE";
+    const triggers = [{ trigger: "dueComplete", changes: ["dueDateChange"] }];
+    const trello = {
+      request: vi.fn(async () => ({ rule, triggers })),
+    };
+
+    await expect(
+      tool.handler(tool.inputSchema.parse({ cardId: "card1", rule }), {
+        trello: trello as never,
+        logger: {} as never,
+        requestId: "req1",
+      }),
+    ).resolves.toEqual({ rule, triggers });
+    expect(trello.request).toHaveBeenCalledWith(
+      "/cards/card1/recurrenceRule",
+      expect.anything(),
+      expect.objectContaining({
+        method: "POST",
+        body: { rule, triggers },
+        resourceType: "card recurrence rule",
+        resourceId: "card1",
+      }),
+    );
+  });
+
+  it("sends explicit recurrence triggers instead of the default", async () => {
+    const tool = getCardTool("card_recurrence_set");
+    const rule =
+      "DTSTART;TZID=Europe/London:20261125T200000\nRRULE:FREQ=DAILY;INTERVAL=1";
+    const triggers = [{ trigger: "custom", changes: ["a", "b"] }];
+    const trello = { request: vi.fn(async () => ({ rule, triggers })) };
+
+    await tool.handler(
+      tool.inputSchema.parse({ cardId: "card1", rule, triggers }),
+      { trello: trello as never, logger: {} as never, requestId: "req1" },
+    );
+    expect(trello.request).toHaveBeenCalledWith(
+      "/cards/card1/recurrenceRule",
+      expect.anything(),
+      expect.objectContaining({ body: { rule, triggers } }),
+    );
+  });
+
+  it("rejects recurrence rules without DTSTART and RRULE lines", () => {
+    const tool = getCardTool("card_recurrence_set");
+
+    expect(() =>
+      tool.inputSchema.parse({ cardId: "card1", rule: "FREQ=WEEKLY" }),
+    ).toThrow("DTSTART line and an RRULE line");
+    expect(() =>
+      tool.inputSchema.parse({
+        cardId: "card1",
+        rule: "DTSTART;TZID=Europe/London:20261125T200000",
+      }),
+    ).toThrow("DTSTART line and an RRULE line");
+    expect(() =>
+      tool.inputSchema.parse({
+        cardId: "card1",
+        rule: "RRULE:FREQ=WEEKLY\nDTSTART;TZID=Europe/London:20261125T200000",
+      }),
+    ).not.toThrow();
+  });
+
+  it("resolves a Trello card URL to the card id for recurrence requests", async () => {
+    const tool = getCardTool("card_recurrence_set");
+    const rule =
+      "DTSTART;TZID=Europe/London:20261125T200000\nRRULE:FREQ=WEEKLY";
+    const trello = {
+      request: vi.fn(async () => ({ rule, triggers: [] })),
+    };
+
+    await tool.handler(
+      tool.inputSchema.parse({
+        cardId: "https://trello.com/c/abcd1234/some-card",
+        rule,
+      }),
+      { trello: trello as never, logger: {} as never, requestId: "req1" },
+    );
+    expect(trello.request).toHaveBeenCalledWith(
+      "/cards/abcd1234/recurrenceRule",
+      expect.anything(),
+      expect.anything(),
+    );
   });
 
   it("sets card position without moving lists or boards", async () => {

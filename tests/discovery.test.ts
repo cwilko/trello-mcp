@@ -295,7 +295,7 @@ describe("credential-independent MCP discovery", () => {
         ),
         version,
       );
-      expect(result.tools).toHaveLength(77);
+      expect(result.tools).toHaveLength(78);
       expect(result.server).toEqual({ name: "trello-mcp", version });
       expect(result.pages).toBe(1);
       expect(result.capabilities).toEqual({ tools: { listChanged: true } });
